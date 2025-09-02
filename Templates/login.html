@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <style>
+body {
+  margin: 0; 
+  min-height: 100vh;
+  background: linear-gradient(135deg, #9ad6f5, #ffffff);
+  position: relative;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Big soft circle in the background */
+body::before {
+  content: "";
+  position: absolute;
+  top: -150px;
+  left: -150px;
+  width: 400px;
+  height: 400px;
+  background: #6bb3f2;
+  border-radius: 50%;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+/* Smaller heart shape at bottom right */.heart {
+  position: absolute;
+  bottom: 50px;
+  right: 50px;
+  width: 100px;
+  height: 90px;
+  background: #ff6b81;
+  transform: rotate(-45deg);
+  border-radius: 50% 50% 0 0;
+  opacity: 0.7;
+  z-index: 0;
+}.heart::before,.heart::after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 90px;
+  background: #ff6b81;
+  border-radius: 50% 50% 0 0;
+}.heart::before {
+  top: -50px;
+  left: 0;
+}.heart::after {
+  left: 50px;
+  top: 0;
+}
+
+/* Container to hold content */.container {
+  position: relative;
+  z-index: 1;
+  padding: 4rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  color: #333;
+  text-align: center;
+}
+    .login-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px 25px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
+      backdrop-filter: blur(10px)
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      max-width: 380px;
+      width: 90%;
+      box-sizing: border-box;
+      opacity: 100%;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #004085;
+      font-weight: 700;
+      font-size: 1.8rem;
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    input {
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 18px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      outline-offset: 2px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #004085;
+      outline: none;
+    }
+    button {
+      background-color: #004085;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #003366;
+    }
+    .flash {
+      color: #c9302c;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login</h2>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <form action="{{ url_for('login') }}" method="post" autocomplete="off">
+      <input type="text" name="username" placeholder="Username" required autofocus />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</body>
+</html>
