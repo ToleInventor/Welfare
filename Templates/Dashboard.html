@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f7fa;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Fixed top nav bar */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background-color: #004085;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 30px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 1000;
+      user-select: none;
+    }
+
+    header h1 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 1.3rem;
+      flex-grow: 1;
+    }
+
+    nav {
+      display: flex;
+      gap: 12px;
+    }
+
+    nav button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    nav button:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+
+    nav button.active {
+      background-color: white;
+      color: #004085;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2);
+    }
+
+    /* Main content below fixed header */
+    main {
+      padding: 80px 30px 30px 30px; /* top padding to avoid nav overlap */
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+      flex-grow: 1;
+      overflow-y: auto;
+      height: calc(100vh - 90px);
+    }
+
+    /* Sections hidden by default */
+    section {
+      display: none;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      max-height: 100%;
+      overflow-y: auto;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    /* Headings */
+    h2 {
+      margin-top: 0;
+      color: #004085;
+    }
+
+    /* Form controls */
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      font-size: 1rem;
+      outline-offset: 2px;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #004085;
+      outline: none;
+    }
+
+    /* Buttons */
+    button.action-btn {
+      background-color: #004085;
+      color: white;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+
+    button.action-btn:hover {
+      background-color: #003366;
+    }
+
+    /* Lists container */
+    .list-container {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px 20px;
+      background: #fafafa;
+      font-size: 0.95rem;
+      color: #444;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .list-container div {
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    /* Error and success messages */
+    .error {
+      color: #c9302c;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .success {
+      color: #3c763d;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    /* Image thumbnails */
+    img.screenshot-thumb {
+      border-radius: 6px;
+      max-height: 110px;
+      max-width: 260px;
+      margin-top: 8px;
+      object-fit: contain;
+      border: 1px solid #ccc;
+    }
+
+    /* Responsive */
+    @media(max-width:600px) {
+      nav {
+        gap: 8px;
+      }
+      input, select, textarea {
+        max-width: 100%;
+      }
+      main {
+        padding: 90px 15px 15px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Welcome, <span id="username-span">Loading...</span></h1>
+    <nav id="nav-bar">
+      <!-- Navigation buttons will be injected here dynamically -->
+    </nav>
+  </header>
+
+  <main>
+    <!-- Admin Dashboard Sections -->
+    <section id="section-add-case" class="dashboard-section">
+      <h2>Add New Case</h2>
+      <div id="case-error" class="error"></div>
+      <label for="case_number">Case Number</label>
+      <input type="text" id="case_number" placeholder="Case Number" />
+      <label for="affected_member">Affected Member(s)</label>
+      <input type="text" id="affected_member" placeholder="Affected Member(s)" />
+      <label for="case_description">Description</label>
+      <textarea id="case_description" placeholder="Description"></textarea>
+      <label for="amount_per_member">Amount to be Paid Per Member</label>
+      <input type="number" id="amount_per_member" placeholder="Amount per Member" min="0" step="0.01" />
+      <label for="total_amount">Total Amount to Raise</label>
+      <input type="number" id="total_amount" placeholder="Total Amount" min="0" step="0.01" />
+      <button class="action-btn" onclick="addCase()">Add Case</button>
+    </section>
+
+    <section id="section-update-payment" class="dashboard-section">
+      <h2>Update Payments</h2>
+      <div id="payment-error" class="error"></div>
+      <label for="payment_uwin">User UWIN Number</label>
+      <input type="text" id="payment_uwin" placeholder="User UWIN Number" />
+      <label for="payment_case_number">Case Number</label>
+      <input type="text" id="payment_case_number" placeholder="Case Number" />
+      <label for="payment_amount">Amount Paid</label>
+      <input type="number" id="payment_amount" placeholder="Amount Paid" min="0" step="0.01" />
+      <button class="action-btn" onclick="addPayment()">Record Payment</button>
+    </section>
+
+    <section id="section-add-user" class="dashboard-section">
+      <h2>Add New User</h2>
+      <div id="user-error" class="error"></div>
+      <label for="new_uwin">UWIN Number</label>
+      <input type="text" id="new_uwin" placeholder="UWIN Number" />
+      <label for="new_username">Username</label>
+      <input type="text" id="new_username" placeholder="Username" />
+      <label for="new_password">Password</label>
+      <input type="password" id="new_password" placeholder="Password" />
+      <label for="new_contact">Contact Info</label>
+      <input type="text" id="new_contact" placeholder="Contact Info" />
+      <label for="new_telephone">Telephone Number</label>
+      <input type="text" id="new_telephone" placeholder="Telephone Number" />
+      <label for="new_role">Role</label>
+      <select id="new_role">
+        <option value="">Select Role</option>
+        <option value="admin">Admin</option>
+        <option value="teacher">Teacher</option>
+      </select>
+      <button class="action-btn" onclick="addUser()">Add User</button>
+    </section>
+
+    <section id="section-defaulters" class="dashboard-section">
+      <h2>Defaulters</h2>
+      <button class="action-btn" onclick="loadDefaulters()">Show Defaulters (Outstanding Balance > 0)</button>
+      <div class="list-container" id="defaulters-list">No data loaded yet.</div>
+    </section>
+
+    <section id="section-messages" class="dashboard-section">
+      <h2>Messages</h2>
+      <div id="message-error" class="error"></div>
+      <label for="new_message_text">New Reminder Message</label>
+      <textarea id="new_message_text" placeholder="Enter reminder message here"></textarea>
+      <button class="action-btn" onclick="addMessage()">Add Message</button>
+      <div class="list-container" id="messages-list">Loading messages...</div>
+    </section>
+
+    <section id="section-submissions" class="dashboard-section">
+      <h2>Payment Proof Submissions</h2>
+      <button class="action-btn" onclick="loadSubmissions()">Refresh Submissions</button>
+      <div class="list-container" id="submissions-list">No submissions loaded.</div>
+    </section>
+
+    <section id="section-downloads" class="dashboard-section">
+      <h2>Downloads</h2>
+      <button class="action-btn" onclick="downloadPDF()">Download Cases PDF</button>
+      <button class="action-btn" onclick="downloadPaymentSheet()">Download Payment Sheet CSV</button>
+    </section>
+
+    <!-- Teacher sections -->
+    <section id="section-teacher-messages" class="dashboard-section">
+      <h2>Messages (Latest First)</h2>
+      <button class="action-btn" onclick="loadMessages()">Refresh Messages</button>
+      <div class="list-container" id="teacher-messages-list">Loading messages...</div>
+    </section>
+
+    <section id="section-teacher-cases" class="dashboard-section">
+      <h2>Current Cases (Sorted by Case Number)</h2>
+      <button class="action-btn" onclick="loadCases()">Refresh Cases</button>
+      <div class="list-container" id="teacher-cases-list">Loading cases...</div>
+    </section>
+
+    <section id="section-submit-payment-proof" class="dashboard-section">
+      <h2>Submit Payment Proof</h2>
+      <div id="upload-error" class="error"></div>
+      <input type="file" id="payment_screenshot" accept="image/*" />
+      <button class="action-btn" onclick="uploadPaymentProof()">Upload Screenshot</button>
+    </section>
+
+    <section id="section-update-profile" class="dashboard-section">
+      <h2>Update Profile</h2>
+      <div id="profile-error" class="error"></div>
+      <label for="contact_info">Contact Info</label>
+      <input type="text" id="contact_info" placeholder="Contact Info" />
+      <label for="telephone_no">Telephone Number</label>
+      <input type="text" id="telephone_no" placeholder="Telephone Number" />
+      <label for="new_password_teacher">New Password (optional)</label>
+      <input type="password" id="new_password_teacher" placeholder="New Password" />
+      <button class="action-btn" onclick="updateProfile()">Update Profile</button>
+    </section>
+
+    <section id="section-current-due" class="dashboard-section">
+      <h2>Your Current Amount Due</h2>
+      <p><strong><span id="amount-due-span">Loading...</span></strong></p>
+    </section>
+
+  </main>
+
+  <script>
+    const usernameSpan = document.getElementById('username-span');
+    const navBar = document.getElementById('nav-bar');
+    const sections = document.querySelectorAll('section.dashboard-section');
+    let userRole = "{{ role|default('') }}";
+    let username = "{{ username|default('Guest') }}";
+
+    usernameSpan.textContent = username;
+
+    // Define nav buttons and corresponding sections by role
+    const adminNavItems = [
+      {id: 'nav-add-case', text: 'Add Case', section: 'section-add-case'},
+      {id: 'nav-update-payment', text: 'Update Payments', section: 'section-update-payment'},
+      {id: 'nav-add-user', text: 'Add User', section: 'section-add-user'},
+      {id: 'nav-defaulters', text: 'Defaulters', section: 'section-defaulters'},
+      {id: 'nav-messages', text: 'Messages', section: 'section-messages'},
+      {id: 'nav-submissions', text: 'Submissions', section: 'section-submissions'},
+      {id: 'nav-downloads', text: 'Downloads', section: 'section-downloads'},
+      {id: 'nav-logout', text: 'Logout', action: () => { logout(); }}
+    ];
+
+    const teacherNavItems = [
+      {id: 'nav-teacher-messages', text: 'Messages', section: 'section-teacher-messages'},
+      {id: 'nav-teacher-cases', text: 'Cases', section: 'section-teacher-cases'},
+      {id: 'nav-submit-proof', text: 'Submit Payment Proof', section: 'section-submit-payment-proof'},
+      {id: 'nav-update-profile', text: 'Update Profile', section: 'section-update-profile'},
+      {id: 'nav-current-due', text: 'Amount Due', section: 'section-current-due'},
+      {id: 'nav-logout', text: 'Logout', action: () => { logout(); }}
+    ];
+
+    function createNav(navItems) {
+      navBar.innerHTML = '';
+      navItems.forEach(item => {
+        const btn = document.createElement('button');
+        btn.id = item.id;
+        btn.textContent = item.text;
+        btn.type = "button";
+        btn.addEventListener('click', () => {
+          navigateTo(item);
+        });
+        navBar.appendChild(btn);
+      });
+    }
+
+    function navigateTo(item) {
+      if(item.action){
+        item.action();
+        return;
+      }
+      sections.forEach(s => s.classList.remove('active'));
+      if(item.section){
+        const sec = document.getElementById(item.section);
+        if(sec){
+          sec.classList.add('active');
+        }
+      }
+      navBar.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+      const currentBtn = document.getElementById(item.id);
+      if(currentBtn) currentBtn.classList.add('active');
+    }
+
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    async function postJSON(url, data) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+        return await res.json();
+      } catch (err) {
+        console.error(err);
+        return {error: 'Request failed'};
+      }
+    }
+
+    async function addCase() {
+      const errorDiv = document.getElementById('case-error');
+      errorDiv.textContent = '';
+      const data = {
+        case_number: document.getElementById('case_number').value.trim(),
+        affected_member: document.getElementById('affected_member').value.trim(),
+        description: document.getElementById('case_description').value.trim(),
+        amount_per_member: parseFloat(document.getElementById('amount_per_member').value),
+        total_amount: parseFloat(document.getElementById('total_amount').value)
+      };
+      if (!data.case_number || isNaN(data.amount_per_member) || isNaN(data.total_amount)) {
+        errorDiv.textContent = "Case Number, Amount per Member, and Total Amount are required and must be numbers.";
+        return;
+      }
+      const res = await postJSON('/api/cases', data);
+      if (res.error) {
+        errorDiv.textContent = res.error;
+      } else {
+        alert('Case added successfully');
+        clearCaseForm();
+      }
+    }
+
+    function clearCaseForm() {
+      document.getElementById('case_number').value = '';
+      document.getElementById('affected_member').value = '';
+      document.getElementById('case_description').value = '';
+      document.getElementById('amount_per_member').value = '';
+      document.getElementById('total_amount').value = '';
+    }
+
+    async function addUser() {
+      const errorDiv = document.getElementById('user-error');
+      errorDiv.textContent = '';
+      const data = {
+        uwin: document.getElementById('new_uwin').value.trim(),
+        username: document.getElementById('new_username').value.trim(),
+        password: document.getElementById('new_password').value,
+        contact_info: document.getElementById('new_contact').value.trim(),
+        telephone_no: document.getElementById('new_telephone').value.trim(),
+        role: document.getElementById('new_role').value
+      };
+      if (!data.uwin || !data.username || !data.password || !data.role) {
+        errorDiv.textContent = 'UWIN, Username, Password, and Role are required.';
+        return;
+      }
+      const res = await postJSON('/api/users', data);
+      if (res.error) {
+        errorDiv.textContent = res.error;
+      } else {
+        alert('User added successfully');
+        clearUserForm();
+      }
+    }
+
+    function clearUserForm() {
+      document.getElementById('new_uwin').value = '';
+      document.getElementById('new_username').value = '';
+      document.getElementById('new_password').value = '';
+      document.getElementById('new_contact').value = '';
+      document.getElementById('new_telephone').value = '';
+      document.getElementById('new_role').value = '';
+    }
+
+    async function addPayment() {
+      const errorDiv = document.getElementById('payment-error');
+      errorDiv.textContent = '';
+      const data = {
+        uwin: document.getElementById('payment_uwin').value.trim(),
+        case_number: document.getElementById('payment_case_number').value.trim(),
+        amount_paid: parseFloat(document.getElementById('payment_amount').value)
+      };
+      if (!data.uwin || !data.case_number || isNaN(data.amount_paid)) {
+        errorDiv.textContent = 'UWIN, Case Number, and Amount Paid are required.';
+        return;
+      }
+      const res = await postJSON('/api/payments', data);
+      if (res.error) {
+        errorDiv.textContent = res.error;
+      } else {
+        alert(`Payment recorded. New amount due: ${res.new_amount_due}`);
+        clearPaymentForm();
+      }
+    }
+
+    function clearPaymentForm() {
+      document.getElementById('payment_uwin').value = '';
+      document.getElementById('payment_case_number').value = '';
+      document.getElementById('payment_amount').value = '';
+    }
+
+    async function addMessage() {
+      const errorDiv = document.getElementById('message-error');
+      errorDiv.textContent = '';
+      const text = document.getElementById('new_message_text').value.trim();
+      if (!text) {
+        errorDiv.textContent = 'Message cannot be empty.';
+        return;
+      }
+      const res = await postJSON('/api/messages', {message_text: text});
+      if (res.error) {
+        errorDiv.textContent = res.error;
+      } else {
+        alert('Message added');
+        document.getElementById('new_message_text').value = '';
+        loadMessages(); // reload messages after adding
+        loadAdminMessages(); // in admin context
+      }
+    }
+
+    async function loadDefaulters() {
+      const res = await fetch('/api/defaulters');
+      if (res.ok) {
+        const users = await res.json();
+        const container = document.getElementById('defaulters-list');
+        container.innerHTML = '';
+        if (!users.length) {
+          container.textContent = 'No defaulters.';
+          return;
+        }
+        users.forEach(u => {
+          const div = document.createElement('div');
+          div.textContent = `User: ${u.username}, Outstanding: ${u.outstanding_due.toFixed(2)}`;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    async function loadMessages() {
+      const res = await fetch('/api/messages');
+      if (res.ok) {
+        const messages = await res.json();
+        const container = document.getElementById('teacher-messages-list') || document.getElementById('messages-list');
+        if(container){
+          container.innerHTML = '';
+          messages.forEach(m => {
+            const div = document.createElement('div');
+            div.textContent = `${new Date(m.created_at).toLocaleString()}: ${m.message_text}`;
+            container.appendChild(div);
+          });
+        }
+      }
+    }
+
+    async function loadAdminMessages() {
+      // Calls loadMessages since they share the same endpoint
+      await loadMessages();
+    }
+
+    async function loadSubmissions() {
+      const res = await fetch('/api/submissions');
+      if (res.ok) {
+        const subs = await res.json();
+        const container = document.getElementById('submissions-list');
+        container.innerHTML = '';
+        if (!subs.length) {
+          container.textContent = 'No submissions found.';
+          return;
+        }
+        subs.forEach(s => {
+          let div = document.createElement('div');
+          div.innerHTML = `
+            User UWIN: ${s.uwin} | Submitted At: ${new Date(s.submitted_at).toLocaleString()} | Status: ${s.status}<br/>
+            <img class="screenshot-thumb" src="/uploads/${s.screenshot_path}" alt="Screenshot" />
+          `;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    function downloadPDF() {
+      window.location.href = '/download/cases_pdf';
+    }
+
+    function downloadPaymentSheet() {
+      window.location.href = '/download/payments_csv';
+    }
+
+    async function loadCases() {
+      const res = await fetch('/api/cases');
+      if (res.ok) {
+        const cases = await res.json();
+        const container = document.getElementById('teacher-cases-list');
+        container.innerHTML = '';
+        cases.forEach(c => {
+          const div = document.createElement('div');
+          div.textContent = `Case ${c.case_number} - ${c.affected_member}`;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    async function uploadPaymentProof() {
+      const errorDiv = document.getElementById('upload-error');
+      errorDiv.textContent = '';
+      const fileInput = document.getElementById('payment_screenshot');
+      if (!fileInput.files.length) {
+        errorDiv.textContent = 'Please select a file.';
+        return;
+      }
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        if (data.error) {
+          errorDiv.textContent = data.error;
+        } else {
+          alert('Upload successful!');
+          fileInput.value = '';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Upload failed.';
+      }
+    }
+
+    async function updateProfile() {
+      const errorDiv = document.getElementById('profile-error');
+      errorDiv.textContent = '';
+      const contact_info = document.getElementById('contact_info').value.trim();
+      const telephone_no = document.getElementById('telephone_no').value.trim();
+      const password = document.getElementById('new_password_teacher').value;
+
+      if (!contact_info) {
+        errorDiv.textContent = 'Contact info cannot be empty.';
+        return;
+      }
+
+      const res = await postJSON('/api/update_profile', {contact_info, telephone_no, password});
+      if (res.error) {
+        errorDiv.textContent = res.error;
+      } else {
+        alert('Profile updated.');
+        document.getElementById('new_password_teacher').value = '';
+      }
+    }
+
+    async function loadAmountDue() {
+      const res = await fetch('/dashboard_data/amount_due');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('amount-due-span').textContent = parseFloat(data.total_due).toFixed(2);
+      } else {
+        document.getElementById('amount-due-span').textContent = '0.00';
+      }
+    }
+
+    // On page load
+    window.onload = () => {
+      if(userRole === 'admin') {
+        createNav(adminNavItems);
+        navigateTo(adminNavItems[0]); // show first section by default
+      } else if(userRole === 'teacher') {
+        createNav(teacherNavItems);
+        navigateTo(teacherNavItems[0]); // show first section by default
+      } else {
+        alert("Unknown role. Please login again.");
+      }
+
+      if(userRole === 'admin'){
+        loadDefaulters();
+        loadAdminMessages();
+        loadSubmissions();
+      } else if(userRole === 'teacher'){
+        loadMessages();
+        loadCases();
+        loadAmountDue();
+      }
+    };
+  </script>
+</body>
+</html>
