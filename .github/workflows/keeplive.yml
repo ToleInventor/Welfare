@@ -1,0 +1,15 @@
+name: Keep Render App Alive
+
+on:
+  schedule:
+    - cron: '*/8 * * * *'  # runs every 8 minutes
+  workflow_dispatch:       # lets you run it manually anytime
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Render app to keep awake
+        run: |
+          curl -I https://lecnotes.onrender.com || exit 1
