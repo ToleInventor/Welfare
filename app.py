@@ -115,7 +115,7 @@ def index():
     if 'uwin' in session:
         return render_template('dashboard.html', username=session.get('username'), role=session.get('role'))
     else:
-        return render_template('dashboard.html', username="Tole", role="admin")
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
